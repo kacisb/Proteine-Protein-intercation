@@ -1,0 +1,219 @@
+---
+title: "STAGE_PockDrug"
+author: "Kaci SEBOUAI"
+date: "2024-04-26"
+output: pdf_document
+---
+
+faire un data frame : 
+
+```{r}
+df <- read.csv("concatenated_file.csv", header=TRUE)
+df[,-c(18,19)] -> df
+
+```
+
+mettre les etiquettes 
+
+```{r}
+rownames(df) <- df[, 1]
+df <- df[, -1]
+```
+
+faire un box_plot pour voir la distribution des variables : 
+
+```{r}
+boxplot(df, las = 2)
+```
+A partir des résultats, il faut normaliser les valeurs pour comprender la distribution des variables :
+
+```{r}
+df_norm <- scale(df)
+# enlver les 2 dernieres colonnes 
+
+df_norm[, -c(18, 19)] -> df_norm
+
+boxplot(df_norm, main = "Donées normalisées", las = 2)
+  
+```
+
+pour faire une classification il faut faire une matrice de distance: 
+
+```{r}
+mat_dist <- dist(x=df_norm, method = "euclidean", diag = FALSE)
+
+
+
+```
+On obtien une demi matrice sans la diagonale qui nous représente les distances entre chaque poche en fonction de tout les discripteurs de DF normaliser.
+
+```{r}
+classif <- hclust(mat_dist, method = "ward.D2")
+plot(classif, hang = -1)
+
+```
+
+
+
+```{r}
+library(factoextra)
+fviz_nbclust(df_norm, FUNcluster=hcut, method="wss") 
+
+
+
+```
+à partire de ce résultat, on remarque que le coude de la courbe est entre 2 et 5 donc le nombre de clustres utiliser doit être entre ces 2 valeurs
+
+```{r}
+
+plot(classif, hang = -1)
+rect.hclust(classif, k=5, border = "red")
+
+
+
+
+```
+```{r}
+groupes <- cutree(classif, k=4)
+table(groupes)
+#Pour conformer les résultats
+sum(c(5+30+13+6))
+```
+
+
+après avoir parcuru les fichiers pdb des poches, on peut voir en partuclier les poches qui contients au moins un résidues : 
+
+```{r}
+library(dendextend)
+# Liste des noms des poches à l'interface
+interface_pockets <- c(
+    "3491_pocket1_atm", "3731_pocket1_atm", "431_pocket2_atm",
+    "3311_pocket7_atm", "3821_pocket5_atm", "9751_pocket0_atm",
+    "8551_pocket0_atm", "3731_pocket2_atm", "3821_pocket6_atm",
+    "3851_pocket4_atm", "3311_pocket4_atm", "8551_pocket2_atm",
+    "3491_pocket0_atm", "3821_pocket1_atm", "3311_pocket3_atm",
+    "431_pocket1_atm", "3851_pocket0_atm", "3311_pocket0_atm",
+    "1801_pocket3_atm", "1801_pocket2_atm", "1801_pocket0_atm",
+    "3821_pocket3_atm", "3851_pocket8_atm", "9751_pocket2_atm",
+    "431_pocket3_atm", "3731_pocket4_atm", "3851_pocket3_atm",
+    "9901_pocket0_atm", "1801_pocket1_atm", "9901_pocket3_atm",
+    "9751_pocket3_atm", "3851_pocket1_atm", "431_pocket0_atm",
+    "3821_pocket4_atm", "3731_pocket3_atm", "9751_pocket1_atm",
+    "3731_pocket0_atm", "3311_pocket5_atm", "3311_pocket6_atm",
+    "9901_pocket2_atm", "3851_pocket9_atm", "3311_pocket1_atm",
+    "8551_pocket1_atm", "3821_pocket0_atm") 
+
+is_in_inter <- function(elem){
+  for (i in 1:length(interface_pockets)){
+    if(elem == interface_pockets[i]){
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+dend <- as.dendrogram(classif)
+
+colors <- c()
+labels <- labels(dend)
+
+for (i in 1:length(labels)){
+  elem <- labels[i]
+  if (is_in_inter(elem)){
+    colors <- c(colors, 'red')
+  
+  }
+  else{
+    colors <-c(colors , 'cyan')
+  }
+}
+labels_colors(dend) <- colors
+
+plot(dend)
+
+```
+
+```{r}
+library(dendextend)
+# Liste des noms des poches à l'interface avec 3 residues 
+interface_pockets <-c(
+    "3491_pocket1_atm", "3731_pocket1_atm", "431_pocket2_atm", "3311_pocket7_atm", "3821_pocket5_atm",
+    "8551_pocket0_atm", "3851_pocket4_atm", "3311_pocket4_atm", "8551_pocket2_atm", "3491_pocket0_atm",
+    "3821_pocket1_atm", "3311_pocket3_atm", "431_pocket1_atm", "3851_pocket0_atm", "1801_pocket3_atm",
+    "1801_pocket0_atm", "3821_pocket3_atm", "3851_pocket8_atm", "9751_pocket2_atm", "431_pocket3_atm",
+    "3731_pocket4_atm", "3851_pocket3_atm", "9901_pocket0_atm", "1801_pocket1_atm", "9901_pocket3_atm",
+    "9751_pocket3_atm", "3851_pocket1_atm", "431_pocket0_atm", "3821_pocket4_atm", "3731_pocket3_atm",
+    "9751_pocket1_atm", "3731_pocket0_atm", "3311_pocket6_atm", "9901_pocket2_atm", "3311_pocket1_atm")
+
+
+is_in_inter <- function(elem){
+  for (i in 1:length(interface_pockets)){
+    if(elem == interface_pockets[i]){
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+dend <- as.dendrogram(classif)
+
+colors <- c()
+labels <- labels(dend)
+
+for (i in 1:length(labels)){
+  elem <- labels[i]
+  if (is_in_inter(elem)){
+    colors <- c(colors, 'red')
+  
+  }
+  else{
+    colors <-c(colors , 'cyan')
+  }
+}
+labels_colors(dend) <- colors
+
+plot(dend)
+
+
+```
+```{r}
+
+# qui contien au moins 5 residus au niveau de l'interface. 
+interface_pockets <-c(
+    "3491_pocket1_atm", "431_pocket2_atm", "3821_pocket5_atm", "8551_pocket0_atm", "3851_pocket4_atm",
+    "8551_pocket2_atm", "3491_pocket0_atm", "3821_pocket1_atm", "431_pocket1_atm", "3851_pocket0_atm",
+    "1801_pocket0_atm", "9751_pocket2_atm", "9901_pocket0_atm", "9751_pocket3_atm", "3851_pocket1_atm",
+    "3731_pocket3_atm", "9751_pocket1_atm", "3731_pocket0_atm", "3311_pocket6_atm", "3311_pocket1_atm"
+)
+
+
+
+is_in_inter <- function(elem){
+  for (i in 1:length(interface_pockets)){
+    if(elem == interface_pockets[i]){
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+dend <- as.dendrogram(classif)
+
+colors <- c()
+labels <- labels(dend)
+
+for (i in 1:length(labels)){
+  elem <- labels[i]
+  if (is_in_inter(elem)){
+    colors <- c(colors, 'red')
+  
+  }
+  else{
+    colors <-c(colors , 'cyan')
+  }
+}
+labels_colors(dend) <- colors
+
+plot(dend)
+
+```
+
+
+
