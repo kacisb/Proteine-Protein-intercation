@@ -70,7 +70,7 @@ def parse_pdb(filename):
     return amino_acids
 
 # Programme principal
-pdb_filename = "complex.pdb"
+pdb_filename = input("Veuillez entrer le nom du fichier PDB : ")
 # Saisie utilisateur pour la distance
 threshold_distance = float(input("Veuillez entrer la distance en Angströms pour détecter l'interface : "))
 all_aa = parse_pdb(pdb_filename)
