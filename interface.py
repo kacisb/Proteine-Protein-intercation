@@ -8,18 +8,17 @@ class AminoAcid:
         self.atoms = atoms
 
 def distance_squared(aa1, aa2):
-    min_dist_sq = float('inf')  # Initialiser la distance minimale entre 2 atôms 
+    min_dist_sq = float('inf')  # Initialiser la distance minimale entre 2 atomes 
     for atom1 in aa1.atoms:
         for atom2 in aa2.atoms:
             dist_sq = (atom1[0] - atom2[0])**2 + \
                       (atom1[1] - atom2[1])**2 + \
                       (atom1[2] - atom2[2])**2
             if dist_sq < min_dist_sq:
-                min_dist_sq = dist_sq # prendre tjr la valeur la plus petite 
+                min_dist_sq = dist_sq  # prendre toujours la valeur la plus petite 
     return min_dist_sq
 
 def detect_interface(aa_list, threshold_distance):
-    thrashold_distance = 6  #Interface 
     interface_aa = []
     for i in range(len(aa_list)):
         for j in range(i + 1, len(aa_list)):
@@ -62,7 +61,7 @@ def parse_pdb(filename):
     for model in structure:
         for chain in model:
             for residue in chain:
-                if residue.get_id()[0] == ' ' and residue.get_resname() != 'HOH': # enlver les molécules d'eau si ce trouve dans le fichier 
+                if residue.get_id()[0] == ' ' and residue.get_resname() != 'HOH':  # enlever les molécules d'eau si elles se trouvent dans le fichier 
                     res_name = residue.get_resname()
                     chain_id = chain.get_id()
                     res_number = residue.get_id()[1]
@@ -70,8 +69,10 @@ def parse_pdb(filename):
                     amino_acids.append(AminoAcid(res_name, chain_id, res_number, atoms))
     return amino_acids
 
-# programme principal
+# Programme principal
 pdb_filename = "complex.pdb"
+# Saisie utilisateur pour la distance
+threshold_distance = float(input("Veuillez entrer la distance en Angströms pour détecter l'interface : "))
 all_aa = parse_pdb(pdb_filename)
-interface_aa = detect_interface(all_aa)
-write_interface_to_file(interface_aa, "interface_residues_6.txt") #donc ici on calcule pour 6 Angstroms. 
+interface_aa = detect_interface(all_aa, threshold_distance)
+write_interface_to_file(interface_aa, f"interface_residues_{threshold_distance}.txt")
